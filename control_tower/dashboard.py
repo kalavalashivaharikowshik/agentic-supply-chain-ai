@@ -19,6 +19,42 @@ def run_dashboard():
 
     st.title("🌍 Agentic AI Supply Chain Control Tower")
 
+    import random
+from database.mysql_connector import MySQLConnector
+
+if st.button("⚡ Simulate Supply Chain Event"):
+
+    db = MySQLConnector()
+
+    events = [
+        ("Storm Alert", "Shanghai Port", 72),
+        ("Port Strike", "Singapore Port", 85),
+        ("Supplier Delay", "Taiwan Factory", 66),
+        ("Customs Delay", "Rotterdam Port", 55)
+    ]
+
+    event = random.choice(events)
+
+    cursor = db.connection.cursor()
+
+    cursor.execute(
+        "INSERT INTO risk_events (event_type, location, severity_score) VALUES (%s,%s,%s)",
+        event
+    )
+
+    cursor.execute(
+        "INSERT INTO agent_decisions (agent_name, decision_type, decision_description) VALUES (%s,%s,%s)",
+        (
+            "Logistics Agent",
+            "Disruption Response",
+            f"Detected {event[0]} at {event[1]}"
+        )
+    )
+
+    db.connection.commit()
+
+    st.success("Supply chain disruption simulated!")
+
     if st.button("🔄 Update Ship Positions"):
         st.rerun()
 
