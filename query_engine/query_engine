@@ -1,0 +1,18 @@
+from knowledge_graph.graph_queries import GraphQueries
+
+
+class QueryEngine:
+
+    def ask(self,question):
+
+        if "supplier" in question.lower():
+
+            suppliers = GraphQueries().get_suppliers_for_product("Semiconductor")
+
+            return f"Suppliers available: {suppliers}"
+
+        if "delay" in question.lower():
+
+            return "Shipment delay detected due to port congestion"
+
+        return "Query not recognized"

@@ -1,0 +1,11 @@
+# Python dependencies
+streamlit
+streamlit-folium
+folium
+mysql-connector-python
+neo4j
+pandas
+langchain
+langgraph
+prophet
+statsmodels

@@ -1,0 +1,1 @@
+-- SQL schema for the supply chain database
