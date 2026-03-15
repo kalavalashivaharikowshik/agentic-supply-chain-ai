@@ -1,6 +1,7 @@
 import mysql.connector
 import os
 
+
 class MySQLConnector:
 
     def __init__(self):
@@ -10,17 +11,15 @@ class MySQLConnector:
             user=os.getenv("MYSQLUSER"),
             password=os.getenv("MYSQLPASSWORD"),
             database=os.getenv("MYSQLDATABASE"),
-            port=os.getenv("MYSQLPORT")
+            port=int(os.getenv("MYSQLPORT")),
+            ssl_disabled=False
         )
 
     def fetch_all(self, query):
 
         cursor = self.connection.cursor(dictionary=True)
-
         cursor.execute(query)
-
         result = cursor.fetchall()
-
         cursor.close()
 
         return result
