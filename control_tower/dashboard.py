@@ -1,5 +1,8 @@
 import sys
 import os
+import random
+from database.mysql_connector import MySQLConnector
+
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
@@ -18,10 +21,7 @@ def run_dashboard():
     )
 
     st.title("🌍 Agentic AI Supply Chain Control Tower")
-
-    import random
-from database.mysql_connector import MySQLConnector
-
+    
 if st.button("⚡ Simulate Supply Chain Event"):
 
     db = MySQLConnector()
