@@ -7,7 +7,6 @@ def show_risks():
     st.subheader("Detected Supply Chain Risks")
 
     db = MySQLConnector()
-    db.connect()
 
     events = db.fetch_all("SELECT * FROM risk_events")
 
@@ -20,5 +19,3 @@ def show_risks():
             st.warning(
                 f"{event['event_type']} | Severity: {event['severity_score']}"
             )
-
-    db.close()
