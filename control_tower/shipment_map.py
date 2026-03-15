@@ -4,15 +4,6 @@ from streamlit_folium import st_folium
 import random
 
 
-# Store ships only (not the map)
-if "ships" not in st.session_state:
-    st.session_state.ships = [
-        {"name": "Evergreen", "lat": 22, "lon": 120},
-        {"name": "Maersk", "lat": 30, "lon": 140},
-        {"name": "COSCO", "lat": 10, "lon": 100},
-    ]
-
-
 ports = [
     {"name": "Shanghai Port", "lat": 31.23, "lon": 121.47},
     {"name": "Singapore Port", "lat": 1.29, "lon": 103.85},
@@ -36,9 +27,16 @@ def show_supply_chain_map():
 
     st.subheader("🌍 Global Supply Chain Map")
 
+    # SAFE initialization
+    if "ships" not in st.session_state:
+        st.session_state.ships = [
+            {"name": "Evergreen", "lat": 22, "lon": 120},
+            {"name": "Maersk", "lat": 30, "lon": 140},
+            {"name": "COSCO", "lat": 10, "lon": 100},
+        ]
+
     move_ships()
 
-    # IMPORTANT: create new map every run
     m = folium.Map(location=[20, 0], zoom_start=2)
 
     # Ports
