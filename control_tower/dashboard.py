@@ -1,18 +1,19 @@
 import sys
 import os
 import random
-from database.mysql_connector import MySQLConnector
-
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import streamlit as st
 
+from database.mysql_connector import MySQLConnector
 from shipment_map import show_supply_chain_map
 from risk_panel import show_risks
 from procurement_panel import show_procurement
 from agent_chat_view import show_agent_activity
 from kpi_panel import show_kpis
+
+
 def run_dashboard():
 
     st.set_page_config(
@@ -21,58 +22,52 @@ def run_dashboard():
     )
 
     st.title("🌍 Agentic AI Supply Chain Control Tower")
-    
-if st.button("⚡ Simulate Supply Chain Event"):
 
-    db = MySQLConnector()
+    # -------- Simulation Button --------
+    if st.button("⚡ Simulate Supply Chain Event"):
 
-    events = [
-        ("Storm Alert", "Shanghai Port", 72),
-        ("Port Strike", "Singapore Port", 85),
-        ("Supplier Delay", "Taiwan Factory", 66),
-        ("Customs Delay", "Rotterdam Port", 55)
-    ]
+        db = MySQLConnector()
 
-    event = random.choice(events)
+        events = [
+            ("Storm Alert", "Shanghai Port", 72),
+            ("Port Strike", "Singapore Port", 85),
+            ("Supplier Delay", "Taiwan Factory", 66),
+            ("Customs Delay", "Rotterdam Port", 55)
+        ]
 
-   if db.connection:
+        event = random.choice(events)
 
-   if db.connection:
+        if db.connection:
 
-    cursor = db.connection.cursor()
+            cursor = db.connection.cursor()
 
-    cursor.execute(
-        "INSERT INTO risk_events (event_type, location, severity_score) VALUES (%s,%s,%s)",
-        event
-    )
+            cursor.execute(
+                "INSERT INTO risk_events (event_type, location, severity_score) VALUES (%s,%s,%s)",
+                event
+            )
 
-    cursor.execute(
-        "INSERT INTO agent_decisions (agent_name, decision_type, decision_description) VALUES (%s,%s,%s)",
-        (
-            "Logistics Agent",
-            "Disruption Response",
-            f"Detected {event[0]} at {event[1]}"
-        )
-    )
+            cursor.execute(
+                "INSERT INTO agent_decisions (agent_name, decision_type, decision_description) VALUES (%s,%s,%s)",
+                (
+                    "Logistics Agent",
+                    "Disruption Response",
+                    f"Detected {event[0]} at {event[1]}"
+                )
+            )
 
-    db.connection.commit()
+            db.connection.commit()
 
-    st.success("Supply chain disruption simulated!")
+            st.success("Supply chain disruption simulated!")
 
-else:
-    st.error("Database connection failed.")
+        else:
+            st.error("Database connection failed.")
 
-    st.success("Supply chain disruption simulated!")
-
-else:
-    st.error("Database connection failed.")
-
-    st.success("Supply chain disruption simulated!")
-
+    # -------- Map Refresh --------
     if st.button("🔄 Update Ship Positions"):
         st.rerun()
 
-    col1, col2 = st.columns([3,1])
+    # -------- Layout --------
+    col1, col2 = st.columns([3, 1])
 
     with col1:
         show_supply_chain_map()
@@ -80,6 +75,7 @@ else:
     with col2:
         show_kpis()
 
+    # -------- Tabs --------
     tab1, tab2, tab3 = st.tabs([
         "⚠ Risk Monitoring",
         "🤖 Agent Activity",
