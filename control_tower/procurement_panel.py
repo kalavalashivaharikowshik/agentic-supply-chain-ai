@@ -7,7 +7,6 @@ def show_procurement():
     st.subheader("Purchase Orders")
 
     db = MySQLConnector()
-    db.connect()
 
     orders = db.fetch_all("SELECT * FROM purchase_orders")
 
@@ -21,17 +20,15 @@ def show_procurement():
                 f"Order {o['order_id']} | Product {o['product_id']} | Qty {o['quantity']} | Status {o['order_status']}"
             )
 
-    db.close()
+    st.info(
+    """
+    AI Recommendation
 
-st.info(
-"""
-AI Recommendation
+    Supplier: ABC Microchips
 
-Supplier: ABC Microchips
-
-Reason:
-• reliability score highest
-• delivery faster by 4 days
-• price only 2% higher
-"""
-)
+    Reason:
+    • reliability score highest  
+    • delivery faster by 4 days  
+    • price only 2% higher
+    """
+    )
