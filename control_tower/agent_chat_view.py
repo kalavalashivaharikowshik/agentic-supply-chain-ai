@@ -4,21 +4,18 @@ from database.mysql_connector import MySQLConnector
 
 def show_agent_activity():
 
-    st.subheader("Agent Decisions")
+    st.subheader("🤖 Agent Activity")
 
     db = MySQLConnector()
-    db.connect()
 
-    decisions = db.fetch_all("SELECT * FROM agent_decisions")
+    logs = db.fetch_all("SELECT * FROM agent_decisions")
 
-    if not decisions:
-        st.info("No agent activity yet")
+    if not logs:
+        st.info("No agent decisions recorded")
 
     else:
-        for d in decisions:
+        for log in logs:
 
             st.write(
-                f"{d['agent_name']} → {d['decision_description']}"
+                f"{log['agent_name']} → {log['decision']}"
             )
-
-    db.close()
