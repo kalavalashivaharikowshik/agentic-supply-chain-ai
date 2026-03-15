@@ -35,6 +35,8 @@ if st.button("⚡ Simulate Supply Chain Event"):
 
     event = random.choice(events)
 
+   if db.connection:
+
     cursor = db.connection.cursor()
 
     cursor.execute(
@@ -52,6 +54,11 @@ if st.button("⚡ Simulate Supply Chain Event"):
     )
 
     db.connection.commit()
+
+    st.success("Supply chain disruption simulated!")
+
+else:
+    st.error("Database connection failed.")
 
     st.success("Supply chain disruption simulated!")
 
