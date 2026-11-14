@@ -1,27 +1,12 @@
-from agents.inventory_agent import InventoryAgent
-from agents.procurement_agent import ProcurementAgent
-from agents.budget_agent import BudgetAgent
+"""Negotiation Manager: runs the full multi-agent decision cycle."""
+
+from __future__ import annotations
+
+from typing import Any, Dict
 
 
 class NegotiationManager:
+    def run_negotiation(self, auto_execute: bool = True) -> Dict[str, Any]:
+        from orchestrator.agent_graph import run_agent_cycle
 
-    def run_negotiation(self):
-
-        inventory_agent = InventoryAgent()
-        inventory_agent.check_inventory()
-
-        procurement_agent = ProcurementAgent()
-        supplier = procurement_agent.find_best_supplier()
-
-        if supplier:
-
-            estimated_cost = supplier["price_index"] * 100
-
-            budget = BudgetAgent()
-
-            approved = budget.approve_budget(estimated_cost)
-
-            if approved:
-                print("Negotiation Manager → Procurement Approved")
-            else:
-                print("Negotiation Manager → Procurement Blocked")
+        return run_agent_cycle(auto_execute=auto_execute)
