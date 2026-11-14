@@ -1,11 +1,20 @@
-# Python dependencies
-streamlit
-streamlit-folium
-folium
-mysql-connector-python
-neo4j
-pandas
-langchain
-langgraph
-prophet
-statsmodels
+# Core
+streamlit>=1.40
+streamlit-folium>=0.22
+folium>=0.17
+pandas>=2.0
+numpy>=1.26
+requests>=2.31
+PyYAML>=6.0
+python-dotenv>=1.0
+langgraph>=0.2
+
+# Databases
+mysql-connector-python>=8.4
+neo4j>=5.20
+
+# Testing
+pytest>=8.0
+
+# Optional: better demand forecasts (falls back to a linear trend if missing)
+# prophet>=1.1

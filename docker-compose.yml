@@ -1,6 +1,55 @@
-version: '3.8'
+# Full stack: dashboard + MySQL (+ optional Neo4j)
+#   docker compose up --build                     # app + MySQL
+#   docker compose --profile graph up --build     # also start Neo4j
+# Then open http://localhost:8501
+
 services:
   app:
     build: .
     ports:
-      - "8000:8000"
+      - "8501:8501"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      MYSQLHOST: mysql
+      MYSQLPORT: 3306
+      MYSQLUSER: ${MYSQLUSER:-supply}
+      MYSQLPASSWORD: ${MYSQLPASSWORD:-supply_pass}
+      MYSQLDATABASE: ${MYSQLDATABASE:-supply_chain}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQLDATABASE:-supply_chain}
+      MYSQL_USER: ${MYSQLUSER:-supply}
+      MYSQL_PASSWORD: ${MYSQLPASSWORD:-supply_pass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_pass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  neo4j:
+    image: neo4j:5
+    profiles: ["graph"]
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-change_me_please}
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+
+volumes:
+  mysql_data:
+  neo4j_data:

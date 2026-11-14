@@ -1,75 +1,60 @@
-import streamlit as st
+"""Global map: ports, live vessel positions, routes and active risk zones."""
+
+from __future__ import annotations
+
 import folium
+import streamlit as st
 from streamlit_folium import st_folium
-import random
+
+from database.mysql_connector import MySQLConnector
+from logistics.shipment_tracker import ShipmentTracker
+from utils.constants import PORT_COORDS, PORTS
+
+LEVEL_COLOR = {"LOW": "#f2c94c", "MEDIUM": "orange", "HIGH": "red", "CRITICAL": "darkred"}
+STATUS_COLOR = {"In Transit": "blue", "Delayed": "orange", "Customs Hold": "purple"}
 
 
-ports = [
-    {"name": "Shanghai Port", "lat": 31.23, "lon": 121.47},
-    {"name": "Singapore Port", "lat": 1.29, "lon": 103.85},
-    {"name": "Rotterdam Port", "lat": 51.92, "lon": 4.48},
-]
+def build_map() -> folium.Map:
+    m = folium.Map(location=[25, 60], zoom_start=2, world_copy_jump=True)
 
-
-risk_zones = [
-    {"name": "Storm Zone", "lat": 25, "lon": 130},
-    {"name": "Port Strike", "lat": 35, "lon": 120},
-]
-
-
-def move_ships():
-    for ship in st.session_state.ships:
-        ship["lat"] += random.uniform(-0.2, 0.2)
-        ship["lon"] += random.uniform(-0.2, 0.2)
-
-
-def show_supply_chain_map():
-
-    st.subheader("🌍 Global Supply Chain Map")
-
-    # SAFE initialization
-    if "ships" not in st.session_state:
-        st.session_state.ships = [
-            {"name": "Evergreen", "lat": 22, "lon": 120},
-            {"name": "Maersk", "lat": 30, "lon": 140},
-            {"name": "COSCO", "lat": 10, "lon": 100},
-        ]
-
-    move_ships()
-
-    m = folium.Map(location=[20, 0], zoom_start=2)
-
-    # Ports
-    for p in ports:
+    for p in PORTS:
         folium.Marker(
             [p["lat"], p["lon"]],
             tooltip=p["name"],
-            icon=folium.Icon(color="green", icon="anchor"),
+            icon=folium.Icon(color="green", icon="anchor", prefix="fa"),
         ).add_to(m)
 
-    # Ships
-    for s in st.session_state.ships:
+    for s in ShipmentTracker().get_active_shipments():
+        origin = PORT_COORDS.get(s["origin_port"])
+        if origin:
+            folium.PolyLine([origin, (s["lat"], s["lon"])], color="#4a6fa5", weight=2,
+                            opacity=0.6, dash_array="6").add_to(m)
         folium.Marker(
             [s["lat"], s["lon"]],
-            tooltip=s["name"],
-            icon=folium.Icon(color="blue", icon="ship"),
+            tooltip=(f"{s['vessel_name']} · {s['product_name']} x{s['quantity']}<br>"
+                     f"{s['origin_port']} → {s['destination_port']}<br>"
+                     f"{s['status']} · {float(s['progress']):.0%} · ETA {s['eta']}"),
+            icon=folium.Icon(color=STATUS_COLOR.get(s["status"], "blue"), icon="ship", prefix="fa"),
         ).add_to(m)
 
-    # Risk zones
-    for r in risk_zones:
+    with MySQLConnector() as db:
+        risks = db.fetch_all("SELECT * FROM risk_events WHERE status = 'Active'")
+    for r in risks:
+        coords = PORT_COORDS.get(r["location"])
+        if not coords:
+            continue
         folium.Circle(
-            location=[r["lat"], r["lon"]],
-            radius=500000,
-            color="red",
+            location=coords,
+            radius=150000 + int(r["severity_score"]) * 6000,
+            color=LEVEL_COLOR.get(r["risk_level"], "red"),
             fill=True,
-            fill_opacity=0.3,
-            popup=r["name"],
+            fill_opacity=0.25,
+            popup=f"{r['event_type']} – severity {r['severity_score']} ({r['risk_level']})",
         ).add_to(m)
+    return m
 
-    st_folium(
-        m,
-        width=1100,
-        height=600,
-        key="map_static",
-        returned_objects=[]
-    )
+
+def show_supply_chain_map() -> None:
+    st.subheader("🌍 Global Supply Chain Map")
+    st_folium(build_map(), use_container_width=True, height=520, key="supply_chain_map", returned_objects=[])
+    st.caption("🟢 ports · 🔵 in transit · 🟠 delayed · 🟣 customs hold · red circles = active risks")

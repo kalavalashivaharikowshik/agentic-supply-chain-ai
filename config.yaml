@@ -1,1 +1,44 @@
 # Configuration for Agentic Supply Chain AI
+# Business rules and tunables. Secrets (passwords, API keys) belong in
+# environment variables / .env, never in this file.
+
+budget:
+  # Monthly procurement budget available to the Budget Agent
+  monthly_limit: 100000
+  # Single purchase orders above this value are rejected outright
+  max_single_order: 60000
+
+inventory:
+  # Products with fewer days of cover than this trigger urgent procurement
+  critical_stock_days: 5
+  # Products below this many days of cover are flagged as "low"
+  warning_stock_days: 10
+  # How many days of cover a replenishment order should target
+  target_cover_days: 30
+
+risk:
+  # Severity score (0-100) thresholds
+  thresholds:
+    critical: 80
+    high: 50
+    medium: 20
+  # Wind speed (km/h) that maps to a severity score of 100
+  max_wind_speed_kmh: 90
+
+procurement:
+  # Weights used to score suppliers (must add up to 1.0)
+  weights:
+    reliability: 0.5
+    price: 0.3
+    lead_time: 0.2
+
+# Ports monitored for weather risk and shown on the map
+ports:
+  - {name: Shanghai Port,    lat: 31.23,  lon: 121.47, country: China}
+  - {name: Singapore Port,   lat: 1.29,   lon: 103.85, country: Singapore}
+  - {name: Rotterdam Port,   lat: 51.92,  lon: 4.48, country: Netherlands}
+  - {name: Los Angeles Port, lat: 33.74,  lon: -118.27, country: United States}
+  - {name: Busan Port,       lat: 35.10,  lon: 129.04, country: South Korea}
+  - {name: Chennai Port,     lat: 13.08,  lon: 80.29, country: India}
+  - {name: Hamburg Port,     lat: 53.54,  lon: 9.98, country: Germany}
+  - {name: Kaohsiung Port,   lat: 22.61,  lon: 120.28, country: Taiwan}
