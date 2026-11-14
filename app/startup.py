@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import sys
+
 from database.mysql_connector import MySQLConnector
 
 TABLES = ["suppliers", "products", "inventory", "shipments", "risk_events", "purchase_orders", "agent_decisions"]
@@ -20,4 +22,4 @@ def test_connection() -> bool:
 
 
 if __name__ == "__main__":
-    test_connection()
+    sys.exit(0 if test_connection() else 1)

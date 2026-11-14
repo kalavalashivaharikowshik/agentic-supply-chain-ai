@@ -166,8 +166,17 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+NO_DB_COMMANDS = {"init-db", "forecast", "dashboard", "sync-graph"}
+
+
 def main(argv: Optional[List[str]] = None) -> None:
     args = build_parser().parse_args(argv)
+    if args.command not in NO_DB_COMMANDS:
+        from database.mysql_connector import MySQLConnector
+
+        with MySQLConnector() as db:
+            if not db.is_connected:
+                sys.exit("Could not connect to the database (check MYSQL* settings or unset MYSQLHOST for SQLite)")
     args.func(args)
 
 
