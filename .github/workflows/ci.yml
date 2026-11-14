@@ -33,7 +33,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: root_pass
         ports: ["3306:3306"]
         options: >-
-          --health-cmd="mysqladmin ping -h localhost" --health-interval=5s --health-timeout=5s --health-retries=20
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -usupply -psupply_pass" --health-interval=5s --health-timeout=5s --health-retries=20
     env:
       MYSQLHOST: 127.0.0.1
       MYSQLPORT: 3306
@@ -48,6 +48,13 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: Wait for MySQL user to be ready
+        run: |
+          for i in $(seq 1 30); do
+            python -c "import mysql.connector as m; m.connect(host='127.0.0.1', user='supply', password='supply_pass', database='supply_chain').close()" && exit 0
+            echo "waiting for mysql ($i)"; sleep 2
+          done
+          exit 1
       - run: python -m app.main init-db --reset
       - run: python -m app.startup
       - run: python -m app.main run-agents

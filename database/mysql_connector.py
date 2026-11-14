@@ -15,6 +15,7 @@ from __future__ import annotations
 import os
 import sqlite3
 import threading
+import time
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -52,18 +53,7 @@ class MySQLConnector:
             return self.connection
         try:
             if self.backend == "mysql":
-                import mysql.connector
-
-                cfg = self.settings.mysql
-                self.connection = mysql.connector.connect(
-                    host=cfg["host"],
-                    user=cfg["user"],
-                    password=cfg["password"],
-                    database=cfg["database"],
-                    port=cfg["port"],
-                    ssl_disabled=cfg["ssl_disabled"],
-                    autocommit=False,
-                )
+                self.connection = self._connect_mysql()
             else:
                 path = self.settings.sqlite_path
                 if path != ":memory:":
@@ -79,6 +69,32 @@ class MySQLConnector:
         if self._auto_init:
             self._ensure_initialized()
         return self.connection
+
+    def _connect_mysql(self):
+        """Connect with retries: a freshly started MySQL container can accept
+        connections a few seconds before its users are created."""
+        import mysql.connector
+
+        cfg = self.settings.mysql
+        attempts = max(1, int(os.environ.get("MYSQL_CONNECT_RETRIES", "5")))
+        delay = float(os.environ.get("MYSQL_CONNECT_RETRY_DELAY", "2"))
+        for attempt in range(1, attempts + 1):
+            try:
+                return mysql.connector.connect(
+                    host=cfg["host"],
+                    user=cfg["user"],
+                    password=cfg["password"],
+                    database=cfg["database"],
+                    port=cfg["port"],
+                    ssl_disabled=cfg["ssl_disabled"],
+                    autocommit=False,
+                    connection_timeout=10,
+                )
+            except mysql.connector.Error as exc:
+                if attempt == attempts:
+                    raise
+                logger.warning("MySQL not ready (attempt %d/%d): %s", attempt, attempts, exc)
+                time.sleep(delay * attempt)
 
     def close(self) -> None:
         if self.connection is not None:
